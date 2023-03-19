@@ -9,14 +9,16 @@ from dotenv import load_dotenv
 from exceptions import (EnviromentVariableError, ParseJsonError,
                         StatusCodeError, WbAPIError)
 
+
 load_dotenv()
+
 
 COOKIES_TOKEN = os.getenv('COOKIES_TOKEN')
 COOKIES = {'WILDAUTHNEW_V3': COOKIES_TOKEN}
-
-url = 'https://ru-basket-api.wildberries.ru/lk/basket/items'
-
 RETRY_PERIOD = 10
+
+
+url = 'https://www.wildberries.ru/webapi/lk/myorders/delivery/active'
 
 
 def check_token():
@@ -40,7 +42,7 @@ def get_api_response():
 
 
 def send_message(message):
-    '''snding message plug.'''
+    '''Sending message plug.'''
     print(message)
 
 
@@ -54,39 +56,37 @@ def check_api_response(response):
         raise KeyError('value not found')
 
 
-def get_backet_list(backet, backet_list):
-    '''Compare and generate a new backet.'''
-    new_backet_list = []
-    for purchase in backet:
-        temp = {}
-        for key, value in purchase.items():
-            if key == 'quantity':
-                temp[key] = value
-            if key == 'cod1S':
-                temp[key] = value
-        new_backet_list.append(temp)
-    if new_backet_list == backet_list:
-        message = 'no changes in backet'
+def get_delivery(last_result, delivery_list):
+    '''Delivery list.'''
+    delivery_cart = []
+    for brand in delivery_list:
+        if brand['trackingStatus'] == 'Готов к получению':
+            ready_to_recieve = brand['brand'] + ' ' + brand['name']
+            delivery_cart.append(ready_to_recieve)
+
+    if delivery_cart != last_result:
+        message = f'{delivery_cart} are ready to receive'
+        last_result = delivery_cart
     else:
-        message = f'updated backet {new_backet_list}'
-    return message, new_backet_list
+        message = 'nothing happens'
+    return message, delivery_cart
 
 
 def main():
     '''Main logic.'''
     message = ''
-    backet_list = []
+    last_result = []
     check_token()
     while True:
         try:
             response_json = get_api_response()
             check_api_response(response_json)
-            backet = response_json.get('value')
-            if len(backet) != 0:
-                message, backet_list = get_backet_list(backet, backet_list)
+            delivery_list = response_json['value']['positions']
+            if len(delivery_list) != 0:
+                message, last_result = get_delivery(last_result, delivery_list)
                 send_message(message)
             else:
-                message = 'your backet is empty'
+                message = 'your delivery is empty'
                 send_message(message)
         except Exception as error:
             message = f'the program is not working {error}'
