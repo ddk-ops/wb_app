@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from exceptions import (EnviromentVariableError, ParseJsonError,
                         StatusCodeError, WbAPIError)
+from mail_module import mail_send
 
 
 load_dotenv()
@@ -16,7 +17,7 @@ load_dotenv()
 COOKIES_TOKEN = os.getenv('COOKIES_TOKEN')
 COOKIES = {'WILDAUTHNEW_V3': COOKIES_TOKEN}
 RETRY_PERIOD = 10
-
+RECIPIENT = input("please enter the recipient's email: ")
 
 url = 'https://www.wildberries.ru/webapi/lk/myorders/delivery/active'
 
@@ -39,11 +40,6 @@ def get_api_response():
         raise ParseJsonError('Token expired')
     except requests.RequestException:
         raise WbAPIError('Api access error')
-
-
-def send_message(message):
-    '''Sending message plug.'''
-    print(message)
 
 
 def check_api_response(response):
@@ -84,10 +80,11 @@ def main():
             delivery_list = response_json['value']['positions']
             if len(delivery_list) != 0:
                 message, last_result = get_delivery(last_result, delivery_list)
-                send_message(message)
+                print(message)
+                if message != 'nothing happens':
+                    mail_send(message, str(RECIPIENT))
             else:
                 message = 'your delivery is empty'
-                send_message(message)
         except Exception as error:
             message = f'the program is not working {error}'
         finally:
