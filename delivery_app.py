@@ -10,7 +10,6 @@ from exceptions import (EnviromentVariableError, ParseJsonError,
                         StatusCodeError, WbAPIError)
 from mail_module import mail_send
 
-
 load_dotenv()
 
 

@@ -1,10 +1,15 @@
 import sqlite3
 
 
-def create_table():
-    '''BD creating.'''
+def get_cursor():
     con = sqlite3.connect('user_data.db')
     cursor = con.cursor()
+    return cursor, con
+
+
+def create_table():
+    '''BD creating.'''
+    cursor, con = get_cursor()
     cursor.execute("""CREATE TABLE user
                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
@@ -16,8 +21,7 @@ def create_table():
 
 def create_user(name, wb_token, mail):
     '''Аdding a new user.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute(
         "INSERT INTO user (name, mail, token) VALUES (?, ?, ?)", (
          name, mail, wb_token))
@@ -27,8 +31,7 @@ def create_user(name, wb_token, mail):
 
 def check_user(name):
     '''User exists checking.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute("SELECT name FROM user")
     for person in cursor.fetchall():
         person = person[0]
@@ -40,8 +43,7 @@ def check_user(name):
 
 def get_token(name):
     '''Getting token from database.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute("SELECT token FROM user WHERE name=name")
     token = cursor.fetchone()
     con.close()
@@ -50,8 +52,7 @@ def get_token(name):
 
 def token_update(name, token):
     '''Refreshing token.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute("Update user SET token=token WHERE name=name")
     con.commit()
     con.close()
@@ -59,8 +60,7 @@ def token_update(name, token):
 
 def get_mail(name):
     '''Getting mail.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute("SELECT mail FROM user WHERE name=name")
     mail = cursor.fetchone()
     con.close()
@@ -69,8 +69,7 @@ def get_mail(name):
 
 def mail_update(name, mail):
     '''Refreshing mail.'''
-    con = sqlite3.connect('user_data.db')
-    cursor = con.cursor()
+    cursor, con = get_cursor()
     cursor.execute("Update user SET mail=mail WHERE name=name")
     con.commit()
     con.close()
